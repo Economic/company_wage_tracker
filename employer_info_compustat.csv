@@ -1,0 +1,67 @@
+shift_employer,sales,empl,real_dir_comp,total_dir_comp,notes,availability
+"Ace Hardware",,,,,.,"Not available, unknown"
+Albertsons,,,,,.,"Not available, unknown"
+Aldi,,,,,.,"Privately owned"
+Amazon,386064,1298,81.83999633789063,81.83999633789063,"Amazon subsidary",2020
+Applebees,689.268,3.447,1690.0439453125,1500,"Dine Brands subsidary",2020
+Arby's,,,,,.,"Privately owned"
+"Bath & Body Works",12914,94.4,5315.27001953125,2853.0830078125,"L Brand subsidary",2019
+"Best Western",,,,,.,"Privately owned"
+"Big Lots",6199.186,37,5266.23095703125,7489.923828125,.,2020
+"Burger King",3834.36624899433,5.2,4699.4580078125,19957.275390625,.,2020
+Chick-Fil-A,,,,,.,"Privately owned"
+Chipotle,5984.634,88,60684.73828125,37615.33984375,.,2020
+Costco,166761,273,17178.623046875,8044.49609375,.,2020
+"Cracker Barrel",2522.792,55,5463.51220703125,5941.38623046875,.,2020
+CVS,268399,300,15069.853515625,6324,.,2020
+DHL,,,,,.,"Outside US"
+"Dollar General",33746.839,158,58544.765625,7416.7177734375,.,2020
+Domino's,4117.411,14.4,17058.052734375,4724.2509765625,.,2020
+"Dunkin Donuts",,,,,.,"Privately owned"
+Express,1208.374,9.84,1000,2339.24609375,.,2020
+Fedex,83959,577,39738.94140625,4393.5546875,.,2020
+"Food Lion",,,,,"Ahold Delhaize","Outside US"
+GameStop,5089.8,35,2036.405029296875,7124.9921875,.,2020
+Gap,13800,117,3560.052978515625,21737.466796875,.,2020
+Hannaford,,,,,"Ahold Delhaize","Outside US"
+HEB,,,,,.,"Privately owned"
+"Home Depot",132110,504.8,39233.32421875,13799.7587890625,.,2020
+IHOP,689.268,3.447,1690.0439453125,1500,"Dine Brands subsidary",2020
+"In-N-Out Burgers",,,,,.,"Privately owned"
+"Jimmy John's",,,,,.,"Privately owned"
+Kohls,15955,110,12653.5126953125,11009.00390625,.,2020
+Kroger/QFC,132498,465,18015.46875,17899.26171875,.,2020
+"LongHorn Steakhouse",7196.1,156.883,19462.908203125,9336.84765625,.,2020
+Lowe's,89597,340,7250,20782.43359375,.,2020
+Marriott,10635,121,9909.443359375,6516.482421875,.,2020
+Marshalls,32136.962,320,14556.638671875,12366.4814453125,.,2020
+McDonald's,19207.8,200,3161.903076171875,10463.646484375,.,2020
+Meijer,,,,,.,"Privately owned"
+Michaels,5271.112,45,8903.5,3080.125,.,2020
+"Olive Garden",7196.1,156.883,19462.908203125,9336.84765625,.,2020
+Panera,,,,,.,"Privately owned"
+"Papa John's",1813.234,16.7,2880,6280.10009765625,.,2020
+"Pizza Hut",5652,38,8650.935546875,8971.3955078125,"Yum Brand subsidary",2020
+"Price Chopper",,,,,.,"Privately owned"
+Publix,,,,,.,"Privately owned"
+"Red Lobster",7196.1,156.883,19462.908203125,9336.84765625,.,2020
+"Rite Aid",24043.24,50,3566.4609375,9549.0869140625,.,2020
+Ross,12531.565,93.7,15529.4091796875,17423.65234375,.,2020
+Safeway,,,,,.,"Privately owned"
+Sonic,,,,,.,"Privately owned"
+Speedway,,,,,.,"Privately owned"
+Starbucks,23518,349,5058.994140625,14567.0869140625,.,2020
+"Stop & Shop",,,,,"Ahold Delhaize","Outside US"
+Subway,,,,,.,"Privately owned"
+"Taco Bell",5652,38,8650.935546875,8971.3955078125,"Yum Brand subsidary",2020
+Target,93561,409,77048.2578125,19266.3671875,.,2020
+"Tractor Supply Co.",8351.931,33.5,11996.4580078125,8613.5615234375,.,2019
+UPS,84628,543,729.1690063476563,3687.990966796875,.,2020
+"Victoria's Secret",12914,94.4,5315.27001953125,2853.0830078125,"L Brand subsidary",2019
+"Waffle House",,,,,.,"Privately owned"
+Walgreens,139537,331,5139.3017578125,0,.,2020
+Walmart,556933,2300,34298.2734375,20915.79296875,.,2020
+Wegmans,,,,,.,"Privately owned"
+Wendy's,1733.825,14,13081.38671875,6467.38916015625,.,2020
+"Whole Foods",386064,1298,81.83999633789063,81.83999633789063,"Amazon subsidary",2020
+Wyndham,1300,9,2811.669921875,6335.52490234375,.,2020
