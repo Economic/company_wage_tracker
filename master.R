@@ -14,23 +14,35 @@ raw_data %>%
   select(shift_employer = employer) %>% 
   write_csv("shift_employer_names.csv")
 
-# from compustat
-employer_characteristics <- read_csv("employer_info_misc.csv") %>% 
-  transmute(
+# misc data units are raw units (not 1000s, etc.)
+employer_misc <- read_csv("employer_info_misc.csv") %>% 
+  select(
     shift_employer = employer,
-    empl_misc = employment_level / 1000,
-    sales_misc = revenue_level / 10^6
+    empl_misc = employment_level,
+    sales_misc = revenue_level
+  )
+
+employer_characteristics <- read_csv("employer_info_compustat.csv") %>%
+  # compustat data units are:
+  # sales = millions
+  # ceo pay = thousands
+  # employment = thousands
+  transmute(
+    shift_employer,
+    sales = sales * 10^6,
+    ceo_pay = real_dir_comp * 1000,
+    empl = empl * 1000
   ) %>% 
-  full_join(read_csv("employer_info_compustat.csv"), by = "shift_employer") %>% 
+  # supplement with misc sources
+  full_join(employer_misc, by = "shift_employer") %>% 
   mutate(sales = if_else(is.na(sales), sales_misc, sales)) %>% 
   mutate(empl = if_else(is.na(empl), empl_misc, empl)) %>% 
-  rename(ceo_pay = real_dir_comp) %>% 
   mutate(across(sales|empl|ceo_pay, ~ comma(.x, accuracy = 1))) %>% 
   transmute(
     employer = shift_employer,
-    "Revenue (millions $)" = sales,
-    "Employment (thousands)" = empl,
-    "CEO pay (millions $)" = ceo_pay
+    revenue = sales,
+    employment = empl,
+    ceo_pay
   ) %>% 
   arrange(employer)
 
@@ -52,6 +64,7 @@ wages_pdf <- raw_data %>%
   pivot_longer(-employer, names_to = "wage_bin") %>% 
   group_by(employer) %>% 
   mutate(share = value / sum(value)) %>% 
+  ungroup() %>% 
   select(employer, wage_bin, share) %>% 
   mutate(share = round(share, 2)) %>% 
   pivot_wider(employer, names_from = wage_bin, values_from = share) %>% 
@@ -94,10 +107,12 @@ wages_cdf <- raw_data %>%
   arrange(employer)
 
 # json output for web app
-wages_pdf %>% 
+final_data <- wages_pdf %>% 
   full_join(employer_characteristics, by = "employer") %>% 
   select(-`Under $10`) %>% 
-  full_join(wages_cdf, by = "employer") %>% 
+  full_join(wages_cdf, by = "employer")
+
+final_data %>% 
   toJSON() %>% 
   write("data.json")
 
