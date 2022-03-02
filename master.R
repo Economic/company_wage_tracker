@@ -3,52 +3,42 @@ library(haven)
 library(scales)
 library(jsonlite)
 
-# from shift project
+# requires the survey data from shift project
+# the data is not public and not provided in this repo
 raw_data <- read_dta("shift_wage_data.dta") %>% 
-  mutate(across(matches("hardship_lastmonth"), ~ replace_na(.x, 0))) %>% 
+  # grab and clean employer names from value labels
   mutate(employer = as.character(as_factor(employer))) %>% 
-  mutate(employer = str_remove(employer, "[0-9]+ ")) 
+  mutate(employer = str_remove(employer, "[0-9]+ ")) %>% 
+  # use hourly wage inclusive of tips
+  rename(wage = hourlywage_including_tips) 
 
-raw_data %>% 
-  count(employer) %>% 
-  select(shift_employer = employer) %>% 
-  write_csv("shift_employer_names.csv")
+# reference USA employer info
+employer_info_rusa <- read_csv("employer_info_referenceusa.csv") %>% 
+  select(employer, emp_rusa = employees)
 
-# misc data units are raw units (not 1000s, etc.)
-employer_misc <- read_csv("employer_info_misc.csv") %>% 
-  select(
-    shift_employer = employer,
-    empl_misc = employment_level,
-    sales_misc = revenue_level
-  )
-
-employer_characteristics <- read_csv("employer_info_compustat.csv") %>%
-  # compustat data units are:
-  # sales = millions
-  # ceo pay = thousands
-  # employment = thousands
-  transmute(
-    shift_employer,
-    sales = sales * 10^6,
-    ceo_pay = real_dir_comp * 1000,
-    empl = empl * 1000
-  ) %>% 
-  # supplement with misc sources
-  full_join(employer_misc, by = "shift_employer") %>% 
-  mutate(sales = if_else(is.na(sales), sales_misc, sales)) %>% 
-  mutate(empl = if_else(is.na(empl), empl_misc, empl)) %>% 
-  mutate(across(sales|empl|ceo_pay, ~ comma(.x, accuracy = 1))) %>% 
+# compustat employer info
+employer_info_cstat <- read_csv("employer_info_compustat.csv") %>% 
   transmute(
     employer = shift_employer,
-    revenue = sales,
-    employment = empl,
-    ceo_pay
-  ) %>% 
-  arrange(employer)
+    # compustat data units are:
+    # sales = millions
+    sales = sales * 10^6,
+    # ceo pay = thousands
+    ceo_pay = real_dir_comp * 1000,
+    # employment = thousands
+    emp_cstat = empl * 1000
+  )
 
-# company-specific pdf
+# combine employer info
+employer_info <- employer_info_rusa %>% 
+  full_join(employer_info_cstat) %>% 
+  mutate(employment = if_else(!is.na(emp_rusa), emp_rusa, emp_cstat)) %>% 
+  mutate(across(sales|employment|ceo_pay, ~ comma(.x, accuracy = 1))) %>% 
+  select(employer, revenue = sales, employment, ceo_pay)
+
+# create company-specific pdf, $2 bins
 wages_pdf <- raw_data %>% 
-  rename(wage = hourlywage_including_tips) %>% 
+  # define bins
   mutate(wage_bin = case_when(
     wage < 10.00 ~ "Under $10",
     wage >= 10.00 & wage < 12.00 ~ "$10 - $12",
@@ -58,60 +48,48 @@ wages_pdf <- raw_data %>%
     wage >= 18.00 & wage < 20.00 ~ "$18 - $20",
     wage >= 20.00 ~ "At least $20"
   )) %>% 
-  count(employer, wage_bin) %>%
-  pivot_wider(employer, names_from = wage_bin, values_from = n) %>% 
-  mutate(across(-employer, ~ replace_na(.x, 0))) %>% 
-  pivot_longer(-employer, names_to = "wage_bin") %>% 
+  # use factors just to convince count() to include zero counts
+  mutate(wage_bin = as.factor(wage_bin)) %>% 
+  count(employer, wage_bin, .drop = FALSE) %>% 
+  # back to character bins
+  mutate(wage_bin = as.character(wage_bin)) %>% 
+  # calculate pdf
   group_by(employer) %>% 
-  mutate(share = value / sum(value)) %>% 
+  mutate(share = n / sum(n)) %>% 
   ungroup() %>% 
   select(employer, wage_bin, share) %>% 
   mutate(share = round(share, 2)) %>% 
-  pivot_wider(employer, names_from = wage_bin, values_from = share) %>% 
-  select(
-    employer,
-    "Under $10",
-    "$10 - $12",
-    "$12 - $14",
-    "$14 - $16",
-    "$16 - $18",
-    "$18 - $20",
-    "At least $20"
-  ) %>% 
-  arrange(employer)
+  pivot_wider(employer, names_from = wage_bin, values_from = share) 
 
-# company-specific cdf
+# create company-specific cdf, $1 increments
 wages_cdf <- raw_data %>% 
-  rename(wage = hourlywage_including_tips) %>% 
-  mutate(
-    wage_bin = as.integer(floor(wage)),
-    wage_bin = case_when(
-      wage < 10.00 ~ 9L,
-      wage > 20.00 ~ 20L,
-      TRUE ~ wage_bin
-    )
-  ) %>% 
-  count(employer, wage_bin) %>%
-  pivot_wider(employer, names_from = wage_bin, values_from = n) %>% 
-  mutate(across(-employer, ~ replace_na(.x, 0))) %>% 
-  pivot_longer(-employer, names_to = "wage_bin") %>% 
-  mutate(wage_bin = as.integer(wage_bin) + 1) %>% 
+  # lump wages at bottom and top
+  mutate(wage = case_when(wage < 10 ~ 9, wage >= 20 ~ 20, TRUE ~ wage)) %>%
+  # define bins
+  mutate(wage_bin = as.integer(floor(wage)) + 1) %>% 
+  # use factors just to convince count() to include zero counts
+  mutate(wage_bin = as.factor(wage_bin)) %>% 
+  count(employer, wage_bin, .drop = FALSE) %>%
+  # back to numeric bins
+  mutate(wage_bin = as.numeric(as.character(wage_bin))) %>% 
+  # calculate cdf
   arrange(employer, wage_bin) %>% 
   group_by(employer) %>% 
-  mutate(cdf = cumsum(value) / sum(value)) %>% 
+  mutate(cdf = cumsum(n) / sum(n)) %>% 
   ungroup() %>% 
   filter(wage_bin != 21) %>% 
   mutate(wage_bin = paste0("Under $", wage_bin)) %>% 
   mutate(cdf = round(cdf, 2)) %>% 
-  pivot_wider(employer, names_from = wage_bin, values_from = cdf) %>% 
+  pivot_wider(employer, names_from = wage_bin, values_from = cdf)
+
+# combine wages and other employer characteristics
+final_data <- wages_pdf %>% 
+  select(-`Under $10`) %>% 
+  full_join(wages_cdf, by = "employer") %>% 
+  full_join(employer_info, by = "employer") %>% 
   arrange(employer)
 
 # json output for web app
-final_data <- wages_pdf %>% 
-  full_join(employer_characteristics, by = "employer") %>% 
-  select(-`Under $10`) %>% 
-  full_join(wages_cdf, by = "employer")
-
 final_data %>% 
   toJSON() %>% 
   write("data.json")
