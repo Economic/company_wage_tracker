@@ -87,6 +87,16 @@ final_data <- wages_pdf %>%
   select(-`Under $10`) %>% 
   full_join(wages_cdf, by = "employer") %>% 
   full_join(employer_info, by = "employer") %>% 
+  # tidy up employer spelling
+  mutate(employer = case_when(
+    employer == "Chick-Fil-A" ~ "Chick-fil-A",
+    employer == "Dunkin Donuts" ~ "Dunkin' Donuts",
+    employer == "Fedex" ~ "FedEx",
+    employer == "HEB" ~ "H-E-B",
+    employer == "In-N-Out Burgers" ~ "In-N-Out Burger",
+    employer == "Kohls" ~ "Kohl's",
+    TRUE ~ employer
+  )) %>% 
   arrange(employer)
 
 # json output for web app
@@ -94,6 +104,8 @@ final_data %>%
   toJSON() %>% 
   write("data.json")
 
-
+# csv output for web download
+final_data %>% 
+  write_csv("company_wage_tracker_data.csv")
 
   
