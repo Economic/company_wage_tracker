@@ -16,6 +16,15 @@ raw_data <- read_dta("shift_wage_data.dta") %>%
 employer_info_rusa <- read_csv("employer_info_referenceusa.csv") %>% 
   select(employer, emp_rusa = employees)
 
+# capital iq info
+employer_info_ciq <- read_csv("employer_info_revenue_misc.csv") %>% 
+  filter(source == "Capital IQ") %>% 
+  transmute(
+    employer, 
+    sales_ciq = revenue_millions * 10^6
+  )
+
+
 # compustat employer info
 employer_info_cstat <- read_csv("employer_info_compustat.csv") %>% 
   transmute(
@@ -32,7 +41,11 @@ employer_info_cstat <- read_csv("employer_info_compustat.csv") %>%
 # combine employer info
 employer_info <- employer_info_rusa %>% 
   full_join(employer_info_cstat) %>% 
+  full_join(employer_info_ciq) %>% 
+  # prefer employment counts : Reference USA > Compustat
   mutate(employment = if_else(!is.na(emp_rusa), emp_rusa, emp_cstat)) %>% 
+  # use Capital IQ revenue counts if missing
+  mutate(sales = if_else(is.na(sales), sales_ciq, sales)) %>% 
   mutate(across(sales|employment|ceo_pay, ~ comma(.x, accuracy = 1))) %>% 
   select(employer, revenue = sales, employment, ceo_pay)
 
