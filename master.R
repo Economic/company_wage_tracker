@@ -18,12 +18,13 @@ employer_info_rusa <- read_csv("employer_info_referenceusa.csv") %>%
 
 # capital iq info
 employer_info_ciq <- read_csv("employer_info_revenue_misc.csv") %>% 
+  # restrict to year 2019 +
+  filter(year >= 2019) %>% 
   filter(source == "Capital IQ") %>% 
   transmute(
     employer, 
     sales_ciq = revenue_millions * 10^6
-  )
-
+  ) 
 
 # compustat employer info
 employer_info_cstat <- read_csv("employer_info_compustat.csv") %>% 
@@ -46,8 +47,12 @@ employer_info <- employer_info_rusa %>%
   mutate(employment = if_else(!is.na(emp_rusa), emp_rusa, emp_cstat)) %>% 
   # use Capital IQ revenue counts if missing
   mutate(sales = if_else(is.na(sales), sales_ciq, sales)) %>% 
+  # use 2021 CEO Amazon value from SEC filing
+  # https://d18rn0p25nwr6d.cloudfront.net/CIK-0001018724/4f0d87fc-e047-4001-b977-3b3affd5de04.pdf
+  mutate(ceo_pay = if_else(employer == "Amazon", 212701169, ceo_pay)) %>% 
   mutate(across(sales|employment|ceo_pay, ~ comma(.x, accuracy = 1))) %>% 
-  select(employer, revenue = sales, employment, ceo_pay)
+  select(employer, revenue = sales, employment, ceo_pay) 
+
 
 # create company-specific pdf, $2 bins
 wages_pdf <- raw_data %>% 
@@ -102,6 +107,7 @@ final_data <- wages_pdf %>%
   full_join(employer_info, by = "employer") %>% 
   # tidy up employer spelling
   mutate(employer = case_when(
+    employer == "Applebees" ~ "Applebee's",
     employer == "Chick-Fil-A" ~ "Chick-fil-A",
     employer == "Dunkin Donuts" ~ "Dunkin' Donuts",
     employer == "Fedex" ~ "FedEx",
