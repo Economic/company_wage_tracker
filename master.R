@@ -49,10 +49,11 @@ employer_info <- employer_info_rusa %>%
   mutate(sales = if_else(is.na(sales), sales_ciq, sales)) %>% 
   # use 2021 CEO Amazon value from SEC filing
   # https://d18rn0p25nwr6d.cloudfront.net/CIK-0001018724/4f0d87fc-e047-4001-b977-3b3affd5de04.pdf
-  mutate(ceo_pay = if_else(employer == "Amazon", 212701169, ceo_pay)) %>% 
+  mutate(ceo_pay = if_else(employer == "Amazon", 212701169, ceo_pay)) %>%
+  # use the same for Whole Foods
+  mutate(ceo_pay = if_else(employer == "Whole Foods", 212701169, ceo_pay)) %>%
   mutate(across(sales|employment|ceo_pay, ~ comma(.x, accuracy = 1))) %>% 
   select(employer, revenue = sales, employment, ceo_pay) 
-
 
 # create company-specific pdf, $2 bins
 wages_pdf <- raw_data %>% 
